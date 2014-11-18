@@ -1,0 +1,24 @@
+﻿<Window x:Class="de.sebastianrutofski.d2mm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DotA 2 Mod Manager" Height="350" Width="525" Loaded="Window_Loaded">
+    <TabControl>
+        <TabItem Header="Mods">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ListView ItemsSource="{Binding}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" />
+                            <GridViewColumn Header="Version" DisplayMemberBinding="{Binding Version}" />
+                            <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </TabItem>
+    </TabControl>
+</Window>
