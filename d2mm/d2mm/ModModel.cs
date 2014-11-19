@@ -4,35 +4,11 @@ using de.sebastianrutofski.d2mm.Annotations;
 
 namespace de.sebastianrutofski.d2mm
 {
-    public sealed class ModModel : INotifyPropertyChanged
+    public sealed class ModModel : INotifyPropertyChanged, IComparable
     {
         private readonly Mod _Mod;
-
-        public string Name
-        {
-            get { return _Mod.Name; }
-            set
-            {
-                if (!Name.Equals(value))
-                {
-                    _Mod.Name = value;
-                    OnPropertyChanged("Name");
-                }
-            }
-        }
-
-        public Version Version
-        {
-            get { return _Mod.Version; }
-            set
-            {
-                if(!Version.Equals(value))
-                {
-                    _Mod.Version = value;
-                    OnPropertyChanged("Version");
-                }
-            }
-        }
+        private bool _Activated = false;
+        private int _Position = 0;
 
         public string Size
         {
@@ -62,6 +38,68 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
+        public Mod Mod
+        {
+            get { return _Mod; }
+        }
+
+        public bool Activated
+        {
+            get { return _Activated; }
+            set
+            {
+                if (!Activated.Equals(value))
+                {
+                    _Activated = value;
+                    OnPropertyChanged("Activated");
+                }
+            }
+        }
+
+        public int Position
+        {
+            get { return _Position; }
+            set
+            {
+                if (!Position.Equals(value))
+                {
+                    _Position = value;
+                    OnPropertyChanged("Position");
+                }
+            }
+        }
+
+        public string Name
+        {
+            get { return _Mod.Name; }
+            set
+            {
+                if (!Name.Equals(value))
+                {
+                    _Mod.Name = value;
+                    OnPropertyChanged("Name");
+                }
+            }
+        }
+
+        public Version Version
+        {
+            get { return _Mod.Version; }
+            set
+            {
+                if(!Version.Equals(value))
+                {
+                    _Mod.Version = value;
+                    OnPropertyChanged("Version");
+                }
+            }
+        }
+
+        public string Dir
+        {
+            get { return _Mod.Dir; }
+        }
+
         public ModModel(Mod mod)
         {
             this._Mod = mod;
@@ -76,5 +114,16 @@ namespace de.sebastianrutofski.d2mm
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public int CompareTo(object obje)
+        {
+            if (obje is ModModel)
+            {
+                return Position.CompareTo(((ModModel) obje).Position);
+            }
+            else
+            {
+                return 0;
+            }
+        }
     }
 }
