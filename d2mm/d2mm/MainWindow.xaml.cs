@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -174,6 +176,89 @@ namespace de.sebastianrutofski.d2mm
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
+        {
+            ApplyMods();
+        }
+
+        private void ApplyMods()
+        {
+            foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
+            {
+                foreach (DirMapping dm in modModel.Mod.DirMappings)
+                {
+                    CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
+                }
+            }
+
+            Process p = new Process();
+            p.StartInfo = new ProcessStartInfo("steam://rungameid/570", "-override_vpk");
+            p.Start();
+
+            while (Process.GetProcessesByName("dota").Length == 0)
+            {
+                Thread.Sleep(1000);
+            }
+            Process.GetProcessesByName("dota")[0].WaitForExit();
+
+            RemoveMods();
+        }
+
+        private void RemoveMods()
+        {
+            foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
+            {
+                foreach (DirMapping dm in modModel.Mod.DirMappings)
+                {
+                    DeleteDirectoryFromDirectory(Path.Combine(modModel.Dir, dm.ModDir), Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
+                }
+            }
+        }
+
+        private void DeleteDirectoryFromDirectory(string removableDir, string cleanableDir)
+        {
+            foreach (string file in Directory.GetFiles(removableDir))
+            {
+                File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
+            }
+
+            if (Directory.GetDirectories(cleanableDir).Count() == 0 && Directory.GetFiles(cleanableDir).Count() == 0)
+            {
+                try
+                {
+                    Directory.Delete(cleanableDir);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    
+                }
+            }
+
+            foreach (string directory in Directory.GetDirectories(removableDir))
+            {
+                DeleteDirectoryFromDirectory(directory, Path.Combine(cleanableDir, Path.GetFileName(Path.GetDirectoryName(directory + "\\"))));
+            }
+        }
+
+        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
+        {
+            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+            }
+
+            foreach (string directory in Directory.GetDirectories(sourceDir))
+            {
+                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
+            }
+        }
+
+        private void RemoveButton_Click(object sender, RoutedEventArgs e)
+        {
+            RemoveMods();
+        }
     }
 
     public class GreaterThanToBoolConverter : IValueConverter

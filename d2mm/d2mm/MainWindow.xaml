@@ -30,8 +30,10 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <StackPanel Grid.Column="1">
-                    <Button Content="Move Up" Name="MoveModUpButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedIndex, Converter={StaticResource greaterThanToBoolConverter}, ConverterParameter=0}" Click="MoveModUpButton_Click"/>
+                <StackPanel Grid.Column="1" Margin="5">
+                    <Button Margin="3" Content="Move Up" Name="MoveModUpButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedIndex, Converter={StaticResource greaterThanToBoolConverter}, ConverterParameter=0}" Click="MoveModUpButton_Click"/>
+                    <Button Margin="3" Content="Apply + Start" Name="ApplyButton" Click="ApplyAndStartButton_Click" />
+                    <Button Margin="3" Content="Remove" Name="RemoveButton" Click="RemoveButton_Click" />
                 </StackPanel>
             </Grid>
         </TabItem>
