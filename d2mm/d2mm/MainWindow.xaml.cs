@@ -131,15 +131,18 @@ namespace de.sebastianrutofski.d2mm
             foreach (Mod mod in Mod.LoadRootDirectory(_ModDir))
             {
                 ModModel mm = new ModModel(mod);
-                object[] objects = _ModConfig.Configs[mm.Dir];
-
-                if (objects.Length == 2)
+                if(_ModConfig.Configs.ContainsKey(mm.Dir))
                 {
-                    mm.Position = Convert.ToInt32(objects[0].ToString());
-                    mm.Activated = (bool) objects[1];
-                    while (Mods.Any(moda => moda.Position == mm.Position))
+                    object[] objects = _ModConfig.Configs[mm.Dir];
+
+                    if (objects.Length == 2)
                     {
-                        mm.Position++;
+                        mm.Position = Convert.ToInt32(objects[0].ToString());
+                        mm.Activated = (bool) objects[1];
+                        while (Mods.Any(moda => moda.Position == mm.Position))
+                        {
+                            mm.Position++;
+                        }
                     }
                 }
                 Mods.Add(mm);
@@ -175,8 +178,6 @@ namespace de.sebastianrutofski.d2mm
             SortMods();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyMods();
@@ -203,6 +204,20 @@ namespace de.sebastianrutofski.d2mm
             Process.GetProcessesByName("dota")[0].WaitForExit();
 
             RemoveMods();
+        }
+
+        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
+        {
+            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+            }
+
+            foreach (string directory in Directory.GetDirectories(sourceDir))
+            {
+                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
+            }
         }
 
         private void RemoveMods()
@@ -241,24 +256,12 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
-        {
-            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
-            foreach (string file in Directory.GetFiles(sourceDir))
-            {
-                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
-            }
-
-            foreach (string directory in Directory.GetDirectories(sourceDir))
-            {
-                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
-            }
-        }
-
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
             RemoveMods();
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     public class GreaterThanToBoolConverter : IValueConverter
