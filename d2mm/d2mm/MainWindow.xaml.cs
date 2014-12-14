@@ -7,11 +7,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using de.sebastianrutofski.d2mm.Annotations;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using Newtonsoft.Json.Linq;
 using MessageBox = System.Windows.MessageBox;
 
@@ -20,7 +23,7 @@ namespace de.sebastianrutofski.d2mm
     /// <summary>
     /// Interaktionslogik für MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
         private const string ConfigFile = ".mods.config";
         private ObservableCollection<ModModel> _Mods = new ObservableCollection<ModModel>();
@@ -90,6 +93,7 @@ namespace de.sebastianrutofski.d2mm
                 {
                     continue;
                 }
+
                 if (MessageBox.Show(String.Format("Detected {0} as DotA 2 directory. Is that right?", dotaDir),
                     "Found!",
                     MessageBoxButton.YesNo).Equals(MessageBoxResult.Yes))
@@ -124,10 +128,22 @@ namespace de.sebastianrutofski.d2mm
             _ModDir = Path.Combine(Properties.Settings.Default.DotaDir, "mods");
             if (!Directory.Exists(_ModDir)) Directory.CreateDirectory(_ModDir);
             if (!File.Exists(ConfigFile)) new ModConfig().SaveConfig(ConfigFile);
+
+            FileSystemWatcher modDirWatcher = new FileSystemWatcher
+            {
+                Path = _ModDir,
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = true
+            };
+            modDirWatcher.Changed += delegate
+            {
+                LoadMods();
+            };
         }
 
         private void LoadMods()
         {
+            Mods = new ObservableCollection<ModModel>();
             foreach (Mod mod in Mod.LoadRootDirectory(_ModDir))
             {
                 ModModel mm = new ModModel(mod);
@@ -181,18 +197,6 @@ namespace de.sebastianrutofski.d2mm
         private void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyMods();
-        }
-
-        private void ApplyMods()
-        {
-            foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
-            {
-                foreach (DirMapping dm in modModel.Mod.DirMappings)
-                {
-                    CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
-                }
-            }
-
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo("steam://rungameid/570", "-override_vpk");
             p.Start();
@@ -204,6 +208,18 @@ namespace de.sebastianrutofski.d2mm
             Process.GetProcessesByName("dota")[0].WaitForExit();
 
             RemoveMods();
+        }
+
+        private void ApplyMods()
+        {
+            RemoveMods();
+            foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
+            {
+                foreach (DirMapping dm in modModel.Mod.DirMappings)
+                {
+                    CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
+                }
+            }
         }
 
         private void CopyDirectoryToDirectory(string sourceDir, string destDir)
@@ -235,10 +251,11 @@ namespace de.sebastianrutofski.d2mm
         {
             foreach (string file in Directory.GetFiles(removableDir))
             {
-                File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
+                if(!Path.GetInvalidFileNameChars().Any(c => file.Contains(c)))
+                    File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
             }
 
-            if (Directory.GetDirectories(cleanableDir).Count() == 0 && Directory.GetFiles(cleanableDir).Count() == 0)
+            if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
             {
                 try
                 {
@@ -252,13 +269,23 @@ namespace de.sebastianrutofski.d2mm
 
             foreach (string directory in Directory.GetDirectories(removableDir))
             {
-                DeleteDirectoryFromDirectory(directory, Path.Combine(cleanableDir, Path.GetFileName(Path.GetDirectoryName(directory + "\\"))));
+                if (!Path.GetInvalidPathChars().Any(c => directory.Contains(c)))
+                {
+                    DeleteDirectoryFromDirectory(directory,
+                        Path.Combine(cleanableDir,
+                            Path.GetFileName(Path.GetDirectoryName(directory + Path.DirectorySeparatorChar))));
+                }
             }
         }
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
             RemoveMods();
+        }
+
+        private void InstallButton_Click(object sender, RoutedEventArgs e)
+        {
+            ApplyMods();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
