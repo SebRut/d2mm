@@ -5,8 +5,14 @@
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="DotA 2 Mod Manager" Height="350" Width="525" Loaded="Window_Loaded" Closing="Window_Closing">
     <Window.Resources>
-        <ns:GreaterThanToBoolConverter x:Key="greaterThanToBoolConverter" />
-        <ns:SmallerThanToBoolConverter x:Key="smallerThanToBoolConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Icons.xaml" />
+                
+            </ResourceDictionary.MergedDictionaries>
+            <ns:GreaterThanToBoolConverter x:Key="greaterThanToBoolConverter" />
+            <ns:SmallerThanToBoolConverter x:Key="smallerThanToBoolConverter" />
+        </ResourceDictionary>
     </Window.Resources>
     <TabControl>
         <TabItem Header="Mods">
@@ -16,6 +22,9 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <ListView Name="ModList" ItemsSource="{Binding Mods}" Margin="5">
+                    <ListView.BorderBrush>
+                        <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveBorderColorKey}}" />
+                    </ListView.BorderBrush>
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Activated">
