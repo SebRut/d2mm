@@ -68,12 +68,30 @@ namespace de.sebastianrutofski.d2mm
         private void CheckSettings()
         {
             if (!Properties.Settings.Default.DotaDir.Equals(String.Empty)) return;
+
+            string regPath = String.Empty;
+            Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.LocalMachine;
+            try
+            {
+                regKey =
+                    regKey.OpenSubKey(
+                        @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 570", false);
+                if (regKey != null)
+                {
+                    string dir = regKey.GetValue("InstallLocation").ToString();
+                   regPath = Path.Combine(dir, "dota_ugc");
+                }
+            }
+            catch (Exception)
+            { }
+
             string[] possibleSteamAppsDirs = new[]
             {
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Steam", "SteamApps",
                     "common"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam",
-                    "SteamApps", "common")
+                    "SteamApps", "common"), 
+                    regPath
             };
 
             string foundDotaDir = null;
