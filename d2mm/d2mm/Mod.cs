@@ -59,9 +59,8 @@ namespace de.sebastianrutofski.d2mm
         {
             get { return _DirMappings; }
             set { if(!DirMappings.Equals(value))
-            {
-                _DirMappings = value;
-            }}
+                    _DirMappings = value;
+            }
         }
 
         public Mod()
@@ -77,28 +76,24 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
-        {
-            List<Mod> result = new List<Mod>();
+        
 
-            foreach (string dir in Directory.GetDirectories(rootDir))
-            {
-                Mod mod;
-                CreateFromDirectory(dir, out mod);
-                result.Add(mod);
-            }
-
-            return result;
-        }
-
-        private static void CreateFromDirectory(string dir, out Mod mod)
+        public static void CreateFromDirectory(string dir, out Mod mod)
         {
             string[] files = Directory.GetFiles(dir);
             if (Array.IndexOf(files, Path.Combine(dir, ConfigFile)) > -1)
             {
-                using (StreamReader streamReader = File.OpenText(Path.Combine(dir, ConfigFile)))
+                try
                 {
-                    CreateFromString(streamReader.ReadToEnd(), out mod);
+                    using (StreamReader streamReader = File.OpenText(Path.Combine(dir, ConfigFile)))
+                    {
+                        CreateFromString(streamReader.ReadToEnd(), out mod);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    mod = new Mod();
+                    mod.Name = Path.GetFileName(Path.GetDirectoryName(dir + "\\"));
                 }
             }
             else
@@ -171,47 +166,6 @@ namespace de.sebastianrutofski.d2mm
         public override bool CanConvert(Type objectType)
         {
             return true;
-        }
-    }
-
-    public struct DirMapping
-    {
-        private string _ModDir;
-        private string _DotaDir;
-
-        public DirMapping(string modDir, string dotaDir) : this()
-        {
-
-            ModDir = modDir;
-            DotaDir = dotaDir;
-        }
-
-        public string ModDir
-        {
-            get { return _ModDir; }
-            set
-            {
-                if (ModDir == null)
-                    _ModDir = String.Empty;
-                if(!ModDir.Equals(value))
-                {
-                    _ModDir = value;
-                }
-            }
-        }
-
-        public string DotaDir
-        {
-            get { return _DotaDir; }
-            set
-            {
-                if (DotaDir == null)
-                    _DotaDir = String.Empty;
-                if(!DotaDir.Equals(value))
-                {
-                    _DotaDir = value;
-                }
-            }
         }
     }
 }

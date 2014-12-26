@@ -353,13 +353,13 @@ namespace de.sebastianrutofski.d2mm.Annotations
   [MeansImplicitUse]
   public sealed class PublicAPIAttribute : Attribute
   {
-    public PublicAPIAttribute() { }
-    public PublicAPIAttribute([NotNull] string comment)
-    {
-      Comment = comment;
-    }
+      [NotNull] public string Comment { get; private set; }
+      public PublicAPIAttribute() { }
 
-    [NotNull] public string Comment { get; private set; }
+      public PublicAPIAttribute([NotNull] string comment)
+      {
+          Comment = comment;
+      }
   }
 
   /// <summary>

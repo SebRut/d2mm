@@ -2,7 +2,7 @@
 
 namespace de.sebastianrutofski.d2mm
 {
-    internal class Helpers
+    internal static class Helpers
     {
         public static long GetDirectorySize(string dir)
         {

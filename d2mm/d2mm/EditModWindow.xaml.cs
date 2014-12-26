@@ -1,4 +1,7 @@
-﻿using MahApps.Metro.Controls;
+﻿using System.IO;
+using System.Windows;
+using System.Windows.Input;
+using MahApps.Metro.Controls;
 
 namespace de.sebastianrutofski.d2mm
 {
@@ -33,6 +36,32 @@ namespace de.sebastianrutofski.d2mm
         private void Button_Click_1(object sender, System.Windows.RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void RemoveDirMapping_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = DirMappings.SelectedItem != null;
+        }
+
+        private void RemoveDirMapping_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            ModModel.DirMappings.Remove((DirMappingModel) DirMappings.SelectedItem);
+        }
+
+        private void AddDirMapping_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        private void AddDirMapping_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DirMappingDialog dmd = new DirMappingDialog(ModModel);
+            dmd.ShowDialog();
+
+            if (dmd.Result != new DirMapping())
+            {
+                ModModel.DirMappings.Add(new DirMappingModel(dmd.Result));
+            }
         }
     }
 }

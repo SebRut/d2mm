@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using de.sebastianrutofski.d2mm.Annotations;
 
@@ -9,6 +11,7 @@ namespace de.sebastianrutofski.d2mm
         private readonly Mod _Mod;
         private bool _Activated = false;
         private int _Position = 0;
+        private ObservableCollection<DirMappingModel> _DirMappings;
 
         public string Size
         {
@@ -40,12 +43,25 @@ namespace de.sebastianrutofski.d2mm
 
         public Mod Mod
         {
-            get { return _Mod; }
+            get
+            {
+                _Mod.DirMappings = new List<DirMapping>();
+                foreach (DirMappingModel dirMappingModel in DirMappings)
+                {
+                    _Mod.DirMappings.Add(dirMappingModel.DirMapping);
+                }
+                return _Mod;
+            }
         }
 
         public string Dir
         {
             get { return _Mod.Dir; }
+        }
+
+        public ObservableCollection<DirMappingModel> DirMappings
+        {
+            get { return _DirMappings; }
         }
 
         public bool Activated
@@ -105,6 +121,7 @@ namespace de.sebastianrutofski.d2mm
         public ModModel(Mod mod)
         {
             this._Mod = mod;
+            _DirMappings = DirMappingModel.FromDirMappingList(mod.DirMappings);
         }
 
 
@@ -125,6 +142,70 @@ namespace de.sebastianrutofski.d2mm
             {
                 return 0;
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+
+    public class DirMappingModel : INotifyPropertyChanged
+    {
+        private DirMapping _DirMapping;
+
+        public DirMapping DirMapping
+        {
+            get { return _DirMapping; }
+        }
+
+        public string ModDir
+        {
+            get { return _DirMapping.ModDir; }
+            set
+            {
+                if(!ModDir.Equals(value))
+                {
+                    _DirMapping.ModDir = value;
+                    OnPropertyChanged("ModDir");
+                }
+            }
+        }
+
+        public string DotaDir
+        {
+            get { return _DirMapping.DotaDir; }
+            set
+            {
+                if (!DotaDir.Equals(value))
+                {
+                    _DirMapping.DotaDir = value;
+                    OnPropertyChanged("DotaDir");
+                }
+            }
+        }
+
+        public DirMappingModel(DirMapping dirMapping)
+        {
+            _DirMapping = dirMapping;
+        }
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public static ObservableCollection<DirMappingModel> FromDirMappingList(List<DirMapping> dirMappings)
+        {
+            ObservableCollection<DirMappingModel> result = new ObservableCollection<DirMappingModel>();
+
+            foreach (DirMapping dirMapping in dirMappings)
+            {
+            
+                result.Add(new DirMappingModel(dirMapping));
+
+            }
+
+            return result;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

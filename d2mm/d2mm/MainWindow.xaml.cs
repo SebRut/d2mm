@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
+using System.Windows.Threading;
 using de.sebastianrutofski.d2mm.Annotations;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
@@ -35,7 +36,7 @@ namespace de.sebastianrutofski.d2mm
             get { return _Mods; }
             set
             {
-                if (!_Mods.Equals(value))
+                if (!Mods.Equals(value))
                 {
                     _Mods = value;
                     OnPropertyChanged("Mods");
@@ -65,9 +66,9 @@ namespace de.sebastianrutofski.d2mm
             SortMods();
         }
 
-        private void CheckSettings()
+        private static void CheckSettings()
         {
-            if (!Properties.Settings.Default.DotaDir.Equals(String.Empty)) return;
+            if (Properties.Settings.Default.DotaDir.Length != 0) return;
 
             string regPath = String.Empty;
             Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.LocalMachine;
@@ -79,7 +80,7 @@ namespace de.sebastianrutofski.d2mm
                 if (regKey != null)
                 {
                     string dir = regKey.GetValue("InstallLocation").ToString();
-                   regPath = Path.Combine(dir, "dota_ugc");
+                    regPath = Path.Combine(dir, "dota_ugc");
                 }
             }
             catch (Exception)
@@ -91,7 +92,7 @@ namespace de.sebastianrutofski.d2mm
                     "common"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam",
                     "SteamApps", "common"), 
-                    regPath
+                regPath
             };
 
             string foundDotaDir = null;
@@ -161,8 +162,8 @@ namespace de.sebastianrutofski.d2mm
 
         private void LoadMods()
         {
-            Mods = new ObservableCollection<ModModel>();
-            foreach (Mod mod in Mod.LoadRootDirectory(_ModDir))
+            Dispatcher.BeginInvoke(new Action(() => Mods.Clear()));
+            foreach (Mod mod in LoadRootDirectory(_ModDir))
             {
                 ModModel mm = new ModModel(mod);
                 if(_ModConfig.Configs.ContainsKey(mm.Dir))
@@ -179,10 +180,25 @@ namespace de.sebastianrutofski.d2mm
                         }
                     }
                 }
-                Mods.Add(mm);
+                Dispatcher.BeginInvoke(new Action(() => Mods.Add(mm)));
+                
             }
 
 
+        }
+
+        public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
+        {
+            List<Mod> result = new List<Mod>();
+
+            foreach (string dir in Directory.GetDirectories(rootDir))
+            {
+                Mod mod;
+                Mod.CreateFromDirectory(dir, out mod);
+                result.Add(mod);
+            }
+
+            return result;
         }
 
         private void SortMods()
@@ -240,20 +256,6 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
-        {
-            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
-            foreach (string file in Directory.GetFiles(sourceDir))
-            {
-                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
-            }
-
-            foreach (string directory in Directory.GetDirectories(sourceDir))
-            {
-                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
-            }
-        }
-
         private void RemoveMods()
         {
             foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
@@ -273,9 +275,9 @@ namespace de.sebastianrutofski.d2mm
                     File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
             }
             try
-                {
-            if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
             {
+                if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
+                {
                 
                     Directory.Delete(cleanableDir);
                 }
@@ -298,6 +300,20 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
+        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
+        {
+            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+            }
+
+            foreach (string directory in Directory.GetDirectories(sourceDir))
+            {
+                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
+            }
+        }
+
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
             RemoveMods();
@@ -307,8 +323,6 @@ namespace de.sebastianrutofski.d2mm
         {
             ApplyMods();
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private void EditModButton_Click(object sender, RoutedEventArgs e)
         {
@@ -324,6 +338,8 @@ namespace de.sebastianrutofski.d2mm
             }
             
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     public class GreaterThanToBoolConverter : IValueConverter
