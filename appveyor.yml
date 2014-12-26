@@ -1,10 +1,4 @@
 version:    0.1.{build}
 
-- provider: Environment
-  name: production
-  on:
-    branch: master
-    appveyor_repo_tag: true
-
 install:
 - git submodule update --init --recursive
