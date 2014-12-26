@@ -34,7 +34,7 @@ Download the latest Release from the [Releases section](https://github.com/SebRu
 
 #Issues & Feedback
 
-See [here](https://github.com/SebRut/d2mm/blob/master/CONTRIBUTE.md#problems-and-feedback)
+See [here](https://github.com/SebRut/d2mm/blob/master/CONTRIBUTING.md#problems-and-feedback)
 
 #Building
 
@@ -45,7 +45,7 @@ See [here](https://github.com/SebRut/d2mm/blob/master/CONTRIBUTE.md#problems-and
 
 #Contribute
 
-Check [CONTRIBUTE.md](https://github.com/SebRut/d2mm/blob/master/CONTRIBUTE.md)
+Check [CONTRIBUTE.md](https://github.com/SebRut/d2mm/blob/master/CONTRIBUTING.md)
 
 #Credits
 
