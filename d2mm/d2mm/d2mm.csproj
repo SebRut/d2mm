@@ -79,7 +79,6 @@
     <Compile Include="EditModWindow.xaml.cs">
       <DependentUpon>EditModWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="NotNullToBoolConverter.cs" />
     <Compile Include="NullToBoolConverter.cs" />
     <Compile Include="SmallerThanToBoolConverter.cs" />
