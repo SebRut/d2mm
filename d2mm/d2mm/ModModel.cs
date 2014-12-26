@@ -43,6 +43,11 @@ namespace de.sebastianrutofski.d2mm
             get { return _Mod; }
         }
 
+        public string Dir
+        {
+            get { return _Mod.Dir; }
+        }
+
         public bool Activated
         {
             get { return _Activated; }
@@ -82,22 +87,19 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        public Version Version
+        public string Version
         {
-            get { return _Mod.Version; }
+            get { return _Mod.Version.ToString(); }
             set
             {
-                if(!Version.Equals(value))
+                Version newVer = null;
+                System.Version.TryParse(value, out newVer);
+                if(newVer != null & !_Mod.Version.Equals(newVer))
                 {
-                    _Mod.Version = value;
+                    _Mod.Version = newVer;
                     OnPropertyChanged("Version");
                 }
             }
-        }
-
-        public string Dir
-        {
-            get { return _Mod.Dir; }
         }
 
         public ModModel(Mod mod)
@@ -113,7 +115,6 @@ namespace de.sebastianrutofski.d2mm
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
         public int CompareTo(object obje)
         {
             if (obje is ModModel)
@@ -125,5 +126,7 @@ namespace de.sebastianrutofski.d2mm
                 return 0;
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ns="clr-namespace:de.sebastianrutofski.d2mm"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-        Title="DotA 2 Mod Manager" Height="350" Width="525" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="DotA 2 Mod Manager" Height="350" Width="525" Loaded="Window_Loaded" Closing="Window_Closing" SizeToContent="Width">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -12,6 +12,8 @@
             </ResourceDictionary.MergedDictionaries>
             <ns:GreaterThanToBoolConverter x:Key="greaterThanToBoolConverter" />
             <ns:SmallerThanToBoolConverter x:Key="smallerThanToBoolConverter" />
+            <ns:NotNullToBoolConverter x:Key="notNullToBoolConverter" />
+            <ns:NullToBoolConverter x:Key="nullToToBoolConverter" />
         </ResourceDictionary>
     </Window.Resources>
     <TabControl>
@@ -49,8 +51,10 @@
                         </StackPanel>
                     </GroupBox>
                     <Button Margin="3" Content="Move Up" Name="MoveModUpButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedIndex, Converter={StaticResource greaterThanToBoolConverter}, ConverterParameter=0}" Click="MoveModUpButton_Click"/>
-                    
-                    
+                    <Button Margin="3" Content="Edit" Name="EditModButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedItem, Converter={StaticResource notNullToBoolConverter}}" Click="EditModButton_Click"/>
+                    <Button Margin="3" Content="New Mod" Name="NewModButton" Click="NewModButton_Click"/>
+
+
                 </StackPanel>
             </Grid>
         </TabItem>

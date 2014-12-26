@@ -114,7 +114,7 @@ namespace de.sebastianrutofski.d2mm
             mod = JsonConvert.DeserializeObject<Mod>(source);
         }
 
-        private static Mod CreateFromDirectory(string dir)
+        internal static Mod CreateFromDirectory(string dir)
         {
             Mod mod;
 

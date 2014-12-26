@@ -272,26 +272,28 @@ namespace de.sebastianrutofski.d2mm
                 if(!Path.GetInvalidFileNameChars().Any(c => file.Contains(c)))
                     File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
             }
-
+            try
+                {
             if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
             {
-                try
-                {
+                
                     Directory.Delete(cleanableDir);
                 }
-                catch (DirectoryNotFoundException)
-                {
-                    
-                }
+                
+            }
+            catch (DirectoryNotFoundException)
+            {
+
             }
 
             foreach (string directory in Directory.GetDirectories(removableDir))
             {
                 if (!Path.GetInvalidPathChars().Any(c => directory.Contains(c)))
                 {
-                    DeleteDirectoryFromDirectory(directory,
-                        Path.Combine(cleanableDir,
-                            Path.GetFileName(Path.GetDirectoryName(directory + Path.DirectorySeparatorChar))));
+                    if (directory != null)
+                        DeleteDirectoryFromDirectory(directory,
+                            Path.Combine(cleanableDir,
+                                Path.GetFileName(Path.GetDirectoryName(string.Format("{0}{1}", directory, Path.DirectorySeparatorChar)))));
                 }
             }
         }
@@ -307,6 +309,21 @@ namespace de.sebastianrutofski.d2mm
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private void EditModButton_Click(object sender, RoutedEventArgs e)
+        {
+            new EditModWindow(((ModModel)ModList.SelectedItem).Mod).ShowDialog();
+        }
+
+        private void NewModButton_Click(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK & Directory.Exists(fbd.SelectedPath))
+            {
+                new EditModWindow(fbd.SelectedPath).ShowDialog();
+            }
+            
+        }
     }
 
     public class GreaterThanToBoolConverter : IValueConverter
