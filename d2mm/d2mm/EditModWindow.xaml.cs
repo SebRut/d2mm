@@ -24,5 +24,15 @@ namespace de.sebastianrutofski.d2mm
             ModModel = new ModModel(mod);
             DataContext = ModModel;
         }
+
+        private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            ModModel.Mod.SaveModConfig();
+        }
+
+        private void Button_Click_1(object sender, System.Windows.RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

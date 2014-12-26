@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="de.sebastianrutofski.d2mm.EditModWindow"
-        Title="{Binding Name}" d:DataContext="{d:DesignData /SampleData/ModModelSampleData.xaml}" SizeToContent="Width" WindowStartupLocation="CenterScreen" MinWidth="250" MinHeight="360">
+        Title="{Binding Name}" d:DataContext="{d:DesignData /SampleData/ModModelSampleData.xaml}" SizeToContent="Width" WindowStartupLocation="CenterScreen" MinWidth="250" MinHeight="360" Height="119.698">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -13,24 +13,24 @@
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
-            <RowDefinition Height="3*" />
+            <RowDefinition Height="4*" />
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Label Content="Name" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Grid.Column="0"/>
-        <TextBox Height="23" TextWrapping="Wrap" Text="{Binding Name, Mode=TwoWay}" VerticalAlignment="Center" Width="120" Grid.Column="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <TextBox TextWrapping="Wrap" Text="{Binding Name, Mode=TwoWay}" VerticalAlignment="Center" Grid.Column="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         <Label Content="Version" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1"/>
-        <TextBox Height="23" TextWrapping="Wrap" Text="{Binding Version, Mode=TwoWay}" VerticalAlignment="Center" Width="120" Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <TextBox TextWrapping="Wrap" Text="{Binding Version, Mode=TwoWay}" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         <Label Content="Directory Bindings" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2"/>
         <ListView VerticalAlignment="Top" Grid.Row="3" Grid.ColumnSpan="2" ItemsSource="{Binding DirMappings}" HorizontalContentAlignment="Center">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Mod Dir" DisplayMemberBinding="{Binding Path=ModDir, Mode=TwoWay}"  />
 
-                    <GridViewColumn Header="Mod Dir" DisplayMemberBinding="{Binding Path=DotaDir, Mode=TwoWay}" />
+                    <GridViewColumn Header="Dota Dir" DisplayMemberBinding="{Binding Path=DotaDir, Mode=TwoWay}" />
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button Content="Save" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="5"/>
-        <Button Content="Close" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="5" Grid.Column="1"/>
+        <Button Content="Save" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="5" Click="Button_Click"/>
+        <Button Content="Close" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="5" Grid.Column="1" Click="Button_Click_1"/>
     </Grid>
 </controls:MetroWindow>
