@@ -6,18 +6,15 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Threading;
 using de.sebastianrutofski.d2mm.Annotations;
 using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using Newtonsoft.Json.Linq;
 using MessageBox = System.Windows.MessageBox;
+using System.Diagnostics;
 
 namespace de.sebastianrutofski.d2mm
 {
@@ -68,6 +65,7 @@ namespace de.sebastianrutofski.d2mm
 
         private static void CheckSettings()
         {
+            d2mm.DLog.Log("Checking Settings...");
             if (Properties.Settings.Default.DotaDir.Length != 0) return;
 
             string regPath = String.Empty;
@@ -80,11 +78,14 @@ namespace de.sebastianrutofski.d2mm
                 if (regKey != null)
                 {
                     string dir = regKey.GetValue("InstallLocation").ToString();
+                    DLog.Log("Possible Dota 2 dir found: " + dir, DLog.LogType.Debug);
                     regPath = Path.Combine(dir, "dota_ugc");
                 }
             }
-            catch (Exception)
-            { }
+            catch (Exception e)
+            {
+                d2mm.DLog.Log(e);
+            }
 
             string[] possibleSteamAppsDirs = new[]
             {
@@ -112,11 +113,12 @@ namespace de.sebastianrutofski.d2mm
                 {
                     continue;
                 }
-
+                DLog.Log("Possible Dota 2 dir found: " + dotaDir, DLog.LogType.Debug);
                 if (MessageBox.Show(String.Format("Detected {0} as DotA 2 directory. Is that right?", dotaDir),
                     "Found!",
                     MessageBoxButton.YesNo).Equals(MessageBoxResult.Yes))
                 {
+                    DLog.Log("Dota 2 dir set to: " + dotaDir, DLog.LogType.Debug);
                     foundDotaDir = dotaDir;
                     break;
                 }
@@ -132,6 +134,7 @@ namespace de.sebastianrutofski.d2mm
                     fbd.ShowDialog();
                     if (fbd.SelectedPath != null)
                     {
+                        DLog.Log("Dota 2 dir set to: " + fbd.SelectedPath, DLog.LogType.Debug);
                         foundDotaDir = fbd.SelectedPath;
                     }
                 }
@@ -144,10 +147,13 @@ namespace de.sebastianrutofski.d2mm
 
         private void Prepare()
         {
+            DLog.Log("Preparing...");
+            DLog.Log("Checking for existing /mods folder");
             _ModDir = Path.Combine(Properties.Settings.Default.DotaDir, "mods");
             if (!Directory.Exists(_ModDir)) Directory.CreateDirectory(_ModDir);
             if (!File.Exists(ConfigFile)) new ModConfig().SaveConfig(ConfigFile);
-
+            
+            DLog.Log("Creating FileSystemWatcher for /mods ...");
             FileSystemWatcher modDirWatcher = new FileSystemWatcher
             {
                 Path = _ModDir,
@@ -162,9 +168,11 @@ namespace de.sebastianrutofski.d2mm
 
         private void LoadMods()
         {
+            DLog.Log("Loading mods...");
             Dispatcher.BeginInvoke(new Action(() => Mods.Clear()));
             foreach (Mod mod in LoadRootDirectory(_ModDir))
             {
+                DLog.Log(string.Format("Mod found: {0} - {1}", mod.Name, mod.Dir), DLog.LogType.Debug);
                 ModModel mm = new ModModel(mod);
                 if(_ModConfig.Configs.ContainsKey(mm.Dir))
                 {
@@ -180,11 +188,8 @@ namespace de.sebastianrutofski.d2mm
                         }
                     }
                 }
-                Dispatcher.BeginInvoke(new Action(() => Mods.Add(mm)));
-                
+                Dispatcher.BeginInvoke(new Action(() => Mods.Add(mm)));              
             }
-
-
         }
 
         public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
@@ -203,6 +208,7 @@ namespace de.sebastianrutofski.d2mm
 
         private void SortMods()
         {
+            DLog.Log("Sorting Mods after position...");
             ModModel[] temp = Mods.ToArray();
             Array.Sort(temp);
             Mods = new ObservableCollection<ModModel>(temp);
@@ -231,6 +237,7 @@ namespace de.sebastianrutofski.d2mm
         private void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
         {
             ApplyMods();
+            DLog.Log("Starting Dota 2...");
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo("steam://rungameid/570", "-override_vpk");
             p.Start();
@@ -247,6 +254,7 @@ namespace de.sebastianrutofski.d2mm
         private void ApplyMods()
         {
             RemoveMods();
+            DLog.Log("Applying mods...");
             foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
             {
                 foreach (DirMapping dm in modModel.Mod.DirMappings)
@@ -258,6 +266,7 @@ namespace de.sebastianrutofski.d2mm
 
         private void RemoveMods(bool uncheck = false)
         {
+            DLog.Log("Removing mods...");
             foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
             {
                 foreach (DirMapping dm in modModel.Mod.DirMappings)
@@ -271,28 +280,27 @@ namespace de.sebastianrutofski.d2mm
 
         private void DeleteDirectoryFromDirectory(string removableDir, string cleanableDir)
         {
+            DLog.Log("Deleting dir...");
             try
             {
                 foreach (string file in Directory.GetFiles(removableDir))
                 {
-                    if (!Path.GetInvalidPathChars().Any(invalidFileNameChar => file.Contains(invalidFileNameChar)) & File.Exists(Path.Combine(cleanableDir, Path.GetFileName(file))))
+                    if (!Path.GetInvalidPathChars().Any(invalidFileNameChar => file.Contains(invalidFileNameChar)) &
+                        File.Exists(Path.Combine(cleanableDir, Path.GetFileName(file))))
+                        DLog.Log("Deleting file: " + Path.Combine(cleanableDir, Path.GetFileName(file)), DLog.LogType.Debug);
                         File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
                 }
 
                 if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
                 {
-
+                    DLog.Log("Deleting dir: " + cleanableDir, DLog.LogType.Debug);
                     Directory.Delete(cleanableDir);
                 }
 
             }
-            catch (DirectoryNotFoundException)
+            catch (Exception ex)
             {
-
-            }
-            catch (FileNotFoundException)
-            {
-                
+                DLog.Log(ex);
             }
 
             if (!Directory.Exists(removableDir))
@@ -313,15 +321,21 @@ namespace de.sebastianrutofski.d2mm
         private void CopyDirectoryToDirectory(string sourceDir, string destDir)
         {
             if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
-            foreach (string file in Directory.GetFiles(sourceDir))
+            if (Directory.Exists(sourceDir))
             {
-                try
+                foreach (string file in Directory.GetFiles(sourceDir))
                 {
-                    File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
-                }
-                catch
-                {
-                    
+                    try
+                    {
+                        DLog.Log(
+                            string.Format("Copying file {0} to {1}", file, Path.Combine(destDir, Path.GetFileName(file))),
+                            DLog.LogType.Debug);
+                        File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+                    }
+                    catch (Exception ex)
+                    {
+                        DLog.Log(ex);
+                    }
                 }
             }
 

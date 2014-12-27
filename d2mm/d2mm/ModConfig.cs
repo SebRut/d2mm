@@ -23,6 +23,7 @@ namespace de.sebastianrutofski.d2mm
 
         public static ModConfig LoadConfig(string file)
         {
+            DLog.Log("Loading Mod config...");
             using (StreamReader reader = File.OpenText(file))
             {
                 try
@@ -31,6 +32,7 @@ namespace de.sebastianrutofski.d2mm
                 }
                 catch (Exception ex)
                 {
+                    DLog.Log(ex);
                     return new ModConfig();
                 }
             }
@@ -38,6 +40,7 @@ namespace de.sebastianrutofski.d2mm
 
         public void SaveConfig(string file)
         {
+            DLog.Log("Saving mod config to: " + file, DLog.LogType.Debug);
             string json = JsonConvert.SerializeObject(this);
             if (File.Exists(file)) File.Delete(file);
             using (StreamWriter writer = new StreamWriter(File.OpenWrite(file)))

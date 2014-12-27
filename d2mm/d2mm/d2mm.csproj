@@ -76,6 +76,7 @@
     <Compile Include="DirMappingDialog.xaml.cs">
       <DependentUpon>DirMappingDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DLog.cs" />
     <Compile Include="EditModWindow.xaml.cs">
       <DependentUpon>EditModWindow.xaml</DependentUpon>
     </Compile>
