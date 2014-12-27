@@ -256,7 +256,7 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        private void RemoveMods()
+        private void RemoveMods(bool uncheck = false)
         {
             foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
             {
@@ -264,29 +264,39 @@ namespace de.sebastianrutofski.d2mm
                 {
                     DeleteDirectoryFromDirectory(Path.Combine(modModel.Dir, dm.ModDir), Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
                 }
+
+                modModel.Activated = !uncheck;
             }
         }
 
         private void DeleteDirectoryFromDirectory(string removableDir, string cleanableDir)
         {
-            foreach (string file in Directory.GetFiles(removableDir))
-            {
-                if(!Path.GetInvalidFileNameChars().Any(c => file.Contains(c)))
-                    File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
-            }
             try
             {
+                foreach (string file in Directory.GetFiles(removableDir))
+                {
+                    if (!Path.GetInvalidPathChars().Any(invalidFileNameChar => file.Contains(invalidFileNameChar)) & File.Exists(Path.Combine(cleanableDir, Path.GetFileName(file))))
+                        File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
+                }
+
                 if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
                 {
-                
+
                     Directory.Delete(cleanableDir);
                 }
-                
+
             }
             catch (DirectoryNotFoundException)
             {
 
             }
+            catch (FileNotFoundException)
+            {
+                
+            }
+
+            if (!Directory.Exists(removableDir))
+                return;
 
             foreach (string directory in Directory.GetDirectories(removableDir))
             {
@@ -305,7 +315,14 @@ namespace de.sebastianrutofski.d2mm
             if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
             foreach (string file in Directory.GetFiles(sourceDir))
             {
-                File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+                try
+                {
+                    File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
+                }
+                catch
+                {
+                    
+                }
             }
 
             foreach (string directory in Directory.GetDirectories(sourceDir))
@@ -316,7 +333,7 @@ namespace de.sebastianrutofski.d2mm
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
-            RemoveMods();
+            RemoveMods(true);
         }
 
         private void InstallButton_Click(object sender, RoutedEventArgs e)
