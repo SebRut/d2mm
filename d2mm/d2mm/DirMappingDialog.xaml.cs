@@ -12,7 +12,7 @@ namespace de.sebastianrutofski.d2mm
     /// <summary>
     /// Interaktionslogik für DirMappingDialog.xaml
     /// </summary>
-    public partial class DirMappingDialog : MetroWindow, INotifyPropertyChanged
+    public sealed partial class DirMappingDialog : MetroWindow, INotifyPropertyChanged
     {
         public DirMapping Result;
 
@@ -20,30 +20,13 @@ namespace de.sebastianrutofski.d2mm
         {
             InitializeComponent();
 
-            List<string> possibleDirs = new List<string>();
-            foreach (
-                string dir in
-                    Directory.GetDirectories(modModel.Dir))
-            {
-                bool found = false;
-                foreach (DirMappingModel dirMappingModel in modModel.DirMappings)
-                {
-                    if (dir.Contains(dirMappingModel.ModDir))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                //bool found = modModel.DirMappings.Any(dirMappingModel => dir.Contains(dirMappingModel.DotaDir));
-                if (!found)
-                    possibleDirs.Add(Path.GetFileName(Path.GetDirectoryName(dir)));
-            }
+            List<string> possibleDirs = (from dir in Directory.GetDirectories(modModel.Dir) let found = modModel.DirMappings.Any(dirMappingModel => Path.GetFileName(dir).Equals(dirMappingModel.ModDir)) where !found select Path.GetFileName(dir)).ToList();
 
             modDirs.ItemsSource = possibleDirs;
         }
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged(string propertyName)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
