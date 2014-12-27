@@ -29,7 +29,7 @@ Download the latest Release from the [Releases section](https://github.com/SebRu
 1. [Download](#download) the latest Release or [compile](#building) the Manager by yourself
 2. Place some mod packages inside your /mods folder in your dota folder
 3. Run the manager
-4. Enable some mods
+4. Enable some mods ( See [How to install a mod](https://github.com/SebRut/d2mm/wiki/How-to-install-a-mod))
 5. Enjoy!
 
 #Issues & Feedback
