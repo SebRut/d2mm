@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Forms;
 using de.sebastianrutofski.d2mm.Annotations;
 using MahApps.Metro.Controls;
 using MessageBox = System.Windows.MessageBox;
-using System.Diagnostics;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace de.sebastianrutofski.d2mm
 {
@@ -54,19 +54,19 @@ namespace de.sebastianrutofski.d2mm
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            CheckSettings();
+            await CheckSettings();
             Prepare();
             _ModConfig = ModConfig.LoadConfig(ConfigFile);
             LoadMods();
             SortMods();
         }
 
-        private static void CheckSettings()
+        private async Task<bool> CheckSettings()
         {
             d2mm.DLog.Log("Checking Settings...");
-            if (Properties.Settings.Default.DotaDir.Length != 0) return;
+            if (Properties.Settings.Default.DotaDir.Length != 0) return false;
 
             string regPath = String.Empty;
             Microsoft.Win32.RegistryKey regKey = Microsoft.Win32.Registry.LocalMachine;
@@ -92,7 +92,7 @@ namespace de.sebastianrutofski.d2mm
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Steam", "SteamApps",
                     "common"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam",
-                    "SteamApps", "common"), 
+                    "SteamApps", "common"),
                 regPath
             };
 
@@ -114,9 +114,11 @@ namespace de.sebastianrutofski.d2mm
                     continue;
                 }
                 DLog.Log("Possible Dota 2 dir found: " + dotaDir, DLog.LogType.Debug);
-                if (MessageBox.Show(String.Format("Detected {0} as DotA 2 directory. Is that right?", dotaDir),
-                    "Found!",
-                    MessageBoxButton.YesNo).Equals(MessageBoxResult.Yes))
+                MessageDialogResult r = await this.ShowMessageAsync("Found!",
+                    String.Format("Detected {0} as DotA 2 directory. Is that right?", dotaDir)
+                    , MessageDialogStyle.AffirmativeAndNegative,
+                    new MetroDialogSettings() {AffirmativeButtonText = "Yes", NegativeButtonText = "No"});
+                if (r == MessageDialogResult.Affirmative)
                 {
                     DLog.Log("Dota 2 dir set to: " + dotaDir, DLog.LogType.Debug);
                     foundDotaDir = dotaDir;
@@ -126,9 +128,11 @@ namespace de.sebastianrutofski.d2mm
 
             if (foundDotaDir == null)
             {
-                if (MessageBox.Show("No DotA 2 dir detected. Wanna pick the right one by yourself?",
-                    "Not Found!",
-                    MessageBoxButton.YesNo).Equals(MessageBoxResult.Yes))
+                MessageDialogResult r = await this.ShowMessageAsync("Not Found!",
+                   "No DotA 2 dir detected. Wanna pick the right one by yourself?"
+                    , MessageDialogStyle.AffirmativeAndNegative,
+                    new MetroDialogSettings() { AffirmativeButtonText = "Yes", NegativeButtonText = "No" });
+                if( r == MessageDialogResult.Affirmative)
                 {
                     FolderBrowserDialog fbd = new FolderBrowserDialog();
                     fbd.ShowDialog();
@@ -140,9 +144,11 @@ namespace de.sebastianrutofski.d2mm
                 }
             }
 
-            if (foundDotaDir == null) return;
+            if (foundDotaDir == null) return false;
             Properties.Settings.Default.DotaDir = foundDotaDir;
             Properties.Settings.Default.Save();
+
+            return true;
         }
 
         private void Prepare()
@@ -152,29 +158,27 @@ namespace de.sebastianrutofski.d2mm
             _ModDir = Path.Combine(Properties.Settings.Default.DotaDir, "mods");
             if (!Directory.Exists(_ModDir)) Directory.CreateDirectory(_ModDir);
             if (!File.Exists(ConfigFile)) new ModConfig().SaveConfig(ConfigFile);
-            
+
             DLog.Log("Creating FileSystemWatcher for /mods ...");
-            FileSystemWatcher modDirWatcher = new FileSystemWatcher
-            {
-                Path = _ModDir,
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = true
-            };
-            modDirWatcher.Changed += delegate
-            {
-                LoadMods();
-            };
         }
 
-        private void LoadMods()
+        private async void LoadMods()
         {
+            ProgressDialogController pdc = await this.ShowProgressAsync("Loading mods...", String.Empty);
+            pdc.SetIndeterminate();
+            pdc.SetCancelable(false);
+
             DLog.Log("Loading mods...");
-            Dispatcher.BeginInvoke(new Action(() => Mods.Clear()));
+            Mods.Clear();
+
+
+            pdc.SetMessage("Loading " + Directory.GetDirectories(_ModDir).Length + " mods. Please wait.");
+
             foreach (Mod mod in LoadRootDirectory(_ModDir))
             {
                 DLog.Log(string.Format("Mod found: {0} - {1}", mod.Name, mod.Dir), DLog.LogType.Debug);
                 ModModel mm = new ModModel(mod);
-                if(_ModConfig.Configs.ContainsKey(mm.Dir))
+                if (_ModConfig.Configs.ContainsKey(mm.Dir))
                 {
                     object[] objects = _ModConfig.Configs[mm.Dir];
 
@@ -188,8 +192,10 @@ namespace de.sebastianrutofski.d2mm
                         }
                     }
                 }
-                Dispatcher.BeginInvoke(new Action(() => Mods.Add(mm)));              
+                Mods.Add(mm);
             }
+
+            await pdc.CloseAsync();
         }
 
         public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
@@ -219,7 +225,7 @@ namespace de.sebastianrutofski.d2mm
             foreach (ModModel modModel in Mods)
             {
                 modModel.Mod.SaveModConfig();
-                _ModConfig.Configs[modModel.Dir] = new object[] { modModel.Position, modModel.Activated };
+                _ModConfig.Configs[modModel.Dir] = new object[] {modModel.Position, modModel.Activated};
             }
             _ModConfig.SaveConfig(ConfigFile);
         }
@@ -227,10 +233,10 @@ namespace de.sebastianrutofski.d2mm
         private void MoveModUpButton_Click(object sender, RoutedEventArgs e)
         {
             int selPos = Mods[ModList.SelectedIndex].Position;
-            int upperPos = Mods[ModList.SelectedIndex-1].Position;
+            int upperPos = Mods[ModList.SelectedIndex - 1].Position;
 
             Mods[ModList.SelectedIndex].Position = upperPos;
-            Mods[ModList.SelectedIndex-1].Position = selPos;
+            Mods[ModList.SelectedIndex - 1].Position = selPos;
             SortMods();
         }
 
@@ -259,7 +265,8 @@ namespace de.sebastianrutofski.d2mm
             {
                 foreach (DirMapping dm in modModel.Mod.DirMappings)
                 {
-                    CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
+                    Helpers.CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),
+                        Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
                 }
             }
         }
@@ -271,77 +278,11 @@ namespace de.sebastianrutofski.d2mm
             {
                 foreach (DirMapping dm in modModel.Mod.DirMappings)
                 {
-                    DeleteDirectoryFromDirectory(Path.Combine(modModel.Dir, dm.ModDir), Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
+                    Helpers.DeleteDirectoryFromDirectory(Path.Combine(modModel.Dir, dm.ModDir),
+                        Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
                 }
 
                 modModel.Activated = !uncheck;
-            }
-        }
-
-        private void DeleteDirectoryFromDirectory(string removableDir, string cleanableDir)
-        {
-            DLog.Log("Deleting dir...");
-            try
-            {
-                foreach (string file in Directory.GetFiles(removableDir))
-                {
-                    if (!Path.GetInvalidPathChars().Any(invalidFileNameChar => file.Contains(invalidFileNameChar)) &
-                        File.Exists(Path.Combine(cleanableDir, Path.GetFileName(file))))
-                        DLog.Log("Deleting file: " + Path.Combine(cleanableDir, Path.GetFileName(file)), DLog.LogType.Debug);
-                        File.Delete(Path.Combine(cleanableDir, Path.GetFileName(file)));
-                }
-
-                if (!Directory.GetDirectories(cleanableDir).Any() && !Directory.GetFiles(cleanableDir).Any())
-                {
-                    DLog.Log("Deleting dir: " + cleanableDir, DLog.LogType.Debug);
-                    Directory.Delete(cleanableDir);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                DLog.Log(ex);
-            }
-
-            if (!Directory.Exists(removableDir))
-                return;
-
-            foreach (string directory in Directory.GetDirectories(removableDir))
-            {
-                if (!Path.GetInvalidPathChars().Any(c => directory.Contains(c)))
-                {
-                    if (directory != null)
-                        DeleteDirectoryFromDirectory(directory,
-                            Path.Combine(cleanableDir,
-                                Path.GetFileName(Path.GetDirectoryName(string.Format("{0}{1}", directory, Path.DirectorySeparatorChar)))));
-                }
-            }
-        }
-
-        private void CopyDirectoryToDirectory(string sourceDir, string destDir)
-        {
-            if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
-            if (Directory.Exists(sourceDir))
-            {
-                foreach (string file in Directory.GetFiles(sourceDir))
-                {
-                    try
-                    {
-                        DLog.Log(
-                            string.Format("Copying file {0} to {1}", file, Path.Combine(destDir, Path.GetFileName(file))),
-                            DLog.LogType.Debug);
-                        File.Copy(file, Path.Combine(destDir, Path.GetFileName(file)), true);
-                    }
-                    catch (Exception ex)
-                    {
-                        DLog.Log(ex);
-                    }
-                }
-            }
-
-            foreach (string directory in Directory.GetDirectories(sourceDir))
-            {
-                CopyDirectoryToDirectory(directory, Path.Combine(destDir, Path.GetFileName(Path.GetDirectoryName(directory+"\\"))));
             }
         }
 
@@ -357,7 +298,7 @@ namespace de.sebastianrutofski.d2mm
 
         private void EditModButton_Click(object sender, RoutedEventArgs e)
         {
-            new EditModWindow(((ModModel)ModList.SelectedItem).Mod).ShowDialog();
+            new EditModWindow(((ModModel) ModList.SelectedItem).Mod).ShowDialog();
         }
 
         private void NewModButton_Click(object sender, RoutedEventArgs e)
@@ -367,22 +308,60 @@ namespace de.sebastianrutofski.d2mm
             {
                 new EditModWindow(fbd.SelectedPath).ShowDialog();
             }
-            
+
+        }
+
+        private void ImportFromZipButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Multiselect = false,
+                CheckFileExists = true,
+                Filter = "Zip files|*.zip"
+            };
+
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                ImportMod(ofd.FileName);
+            }
+
+        }
+
+        private void ImportMod(string fileName)
+        {
+            DLog.Log("Importing mod from " + fileName, DLog.LogType.Debug);
+            string optDirName = Path.GetFileNameWithoutExtension(fileName).ToLowerInvariant().Replace(" ", "_");
+
+            optDirName = Path.GetInvalidFileNameChars().Aggregate(optDirName, (current, c) => current.Replace(c.ToString(), "~"));
+
+            string destDir = Path.Combine(_ModDir, optDirName);
+
+            try
+            {
+                DLog.Log("Unzipping mod to " + destDir);
+                ZipFile.ExtractToDirectory(fileName, destDir);
+            }
+            catch (Exception e)
+            {
+                DLog.Log(e);
+                return;
+            }
+            Mod mod = Mod.CreateFromDirectory(destDir);
+
+            if (Directory.GetDirectories(destDir).Any(d => d == "dota"))
+            {
+                foreach (string dir in Directory.GetDirectories(Path.Combine(destDir, "/dota")))
+                {
+                    Helpers.MoveDirectoryToDirectory(Path.Combine(destDir, "/dota", Path.PathSeparator + dir),
+                        Path.Combine(destDir, Path.PathSeparator + dir));
+                    mod.DirMappings.Add(new DirMapping(dir, Path.Combine("dota", Path.PathSeparator + dir)));
+                }
+            }
+
+            mod.SaveModConfig();
+            Mods.Add(new ModModel(mod));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-    }
-
-    public class GreaterThanToBoolConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Int32.Parse(value.ToString()) > Int32.Parse(parameter.ToString());
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
