@@ -240,9 +240,9 @@ namespace de.sebastianrutofski.d2mm
             SortMods();
         }
 
-        private void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
+        private async void ApplyAndStartButton_Click(object sender, RoutedEventArgs e)
         {
-            ApplyMods();
+            await ApplyMods();
             DLog.Log("Starting Dota 2...");
             Process p = new Process();
             p.StartInfo = new ProcessStartInfo("steam://rungameid/570", "-override_vpk");
@@ -257,18 +257,29 @@ namespace de.sebastianrutofski.d2mm
             RemoveMods();
         }
 
-        private void ApplyMods()
+        private async Task<bool> ApplyMods()
         {
             RemoveMods();
+            IEnumerable<ModModel> activatedMods = Mods.Where(mm => mm.Activated);
+            var pdc = await this.ShowProgressAsync("Installing mods...", "Installing " + activatedMods.ToArray<ModModel>().Length + " mods. Please wait.");
+            pdc.SetIndeterminate();
+            pdc.SetCancelable(false);
+
             DLog.Log("Applying mods...");
-            foreach (ModModel modModel in Mods.Where(mm => mm.Activated))
+
+            
+            foreach (ModModel modModel in activatedMods)
             {
+                DLog.Log("Installing mod \"" + modModel.Name + "\"", DLog.LogType.Debug);
                 foreach (DirMapping dm in modModel.Mod.DirMappings)
                 {
                     Helpers.CopyDirectoryToDirectory(Path.Combine(modModel.Dir, dm.ModDir),
                         Path.Combine(Properties.Settings.Default.DotaDir, dm.DotaDir));
                 }
             }
+
+            await pdc.CloseAsync();
+            return true;
         }
 
         private void RemoveMods(bool uncheck = false)
@@ -291,9 +302,9 @@ namespace de.sebastianrutofski.d2mm
             RemoveMods(true);
         }
 
-        private void InstallButton_Click(object sender, RoutedEventArgs e)
+        private async void InstallButton_Click(object sender, RoutedEventArgs e)
         {
-            ApplyMods();
+            await ApplyMods();
         }
 
         private void EditModButton_Click(object sender, RoutedEventArgs e)
