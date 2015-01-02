@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -59,7 +60,7 @@ namespace de.sebastianrutofski.d2mm
         {
             get { return _DirMappings; }
             set { if(!DirMappings.Equals(value))
-                    _DirMappings = value;
+                _DirMappings = value;
             }
         }
 
@@ -76,10 +77,24 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-        
+
+        public static Mod CreateFromDirectory(string dir)
+        {
+            Mod mod;
+
+            CreateFromDirectory(dir, out mod);
+
+            return mod;
+        }
 
         public static void CreateFromDirectory(string dir, out Mod mod)
         {
+            if (Path.GetInvalidPathChars().Concat(Path.GetInvalidFileNameChars()).Any(dir.Contains))
+            {
+                mod = new Mod();
+                mod.Name = Path.GetFileName(Path.GetDirectoryName(Path.GetInvalidPathChars().Aggregate(dir, (current,c) => current.Replace(c.ToString(), "~")) + "\\"));
+                return;
+            }
             string[] files = Directory.GetFiles(dir);
             if (Array.IndexOf(files, Path.Combine(dir, ConfigFile)) > -1)
             {
@@ -104,21 +119,17 @@ namespace de.sebastianrutofski.d2mm
             mod.Dir = dir;
         }
 
-        private static void CreateFromString(string source, out Mod mod)
+        public static void CreateFromString(string source, out Mod mod)
         {
+            if (source.Equals(String.Empty))
+            {
+                mod = new Mod();
+                return;
+            }
             mod = JsonConvert.DeserializeObject<Mod>(source);
         }
 
-        internal static Mod CreateFromDirectory(string dir)
-        {
-            Mod mod;
-
-            CreateFromDirectory(dir, out mod);
-
-            return mod;
-        }
-
-        private static Mod CreateFromString(string source)
+        public static Mod CreateFromString(string source)
         {
             Mod mod;
 
