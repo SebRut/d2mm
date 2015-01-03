@@ -21,7 +21,7 @@ namespace de.sebastianrutofski.d2mm
     /// <summary>
     /// Interaktionslogik für MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
+    public sealed partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
         private const string ConfigFile = ".mods.config";
         private ObservableCollection<ModModel> _Mods = new ObservableCollection<ModModel>();
@@ -48,7 +48,7 @@ namespace de.sebastianrutofski.d2mm
         }
 
         [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged(string propertyName)
         {
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
@@ -174,7 +174,7 @@ namespace de.sebastianrutofski.d2mm
 
             pdc.SetMessage("Loading " + Directory.GetDirectories(_ModDir).Length + " mods. Please wait.");
 
-            foreach (Mod mod in LoadRootDirectory(_ModDir))
+            foreach (Mod mod in Mod.LoadRootDirectory(_ModDir))
             {
                 DLog.Log(string.Format("Mod found: {0} - {1}", mod.Name, mod.Dir), DLog.LogType.Debug);
                 ModModel mm = new ModModel(mod);
@@ -196,20 +196,6 @@ namespace de.sebastianrutofski.d2mm
             }
 
             await pdc.CloseAsync();
-        }
-
-        public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
-        {
-            List<Mod> result = new List<Mod>();
-
-            foreach (string dir in Directory.GetDirectories(rootDir))
-            {
-                Mod mod;
-                Mod.CreateFromDirectory(dir, out mod);
-                result.Add(mod);
-            }
-
-            return result;
         }
 
         private void SortMods()

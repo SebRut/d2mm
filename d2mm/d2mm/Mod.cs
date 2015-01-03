@@ -77,7 +77,6 @@ namespace de.sebastianrutofski.d2mm
             }
         }
 
-
         public static Mod CreateFromDirectory(string dir)
         {
             Mod mod;
@@ -136,6 +135,20 @@ namespace de.sebastianrutofski.d2mm
             CreateFromString(source, out mod);
 
             return mod;
+        }
+
+        public static IEnumerable<Mod> LoadRootDirectory(string rootDir)
+        {
+            List<Mod> result = new List<Mod>();
+
+            foreach (string dir in Directory.GetDirectories(rootDir))
+            {
+                Mod mod;
+                CreateFromDirectory(dir, out mod);
+                result.Add(mod);
+            }
+
+            return result;
         }
 
         public void SaveModConfig()

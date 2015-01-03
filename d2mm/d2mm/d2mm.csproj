@@ -81,14 +81,15 @@
     <Compile Include="DirMappingDialog.xaml.cs">
       <DependentUpon>DirMappingDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\DirMappingModel.cs" />
     <Compile Include="DLog.cs" />
     <Compile Include="EditModWindow.xaml.cs">
       <DependentUpon>EditModWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GreaterThanToBoolConverter.cs" />
-    <Compile Include="NotNullToBoolConverter.cs" />
-    <Compile Include="NullToBoolConverter.cs" />
-    <Compile Include="SmallerThanToBoolConverter.cs" />
+    <Compile Include="Converters\GreaterThanToBoolConverter.cs" />
+    <Compile Include="Converters\NotNullToBoolConverter.cs" />
+    <Compile Include="Converters\NullToBoolConverter.cs" />
+    <Compile Include="Converters\SmallerThanToBoolConverter.cs" />
     <Page Include="DirMappingDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -118,7 +119,7 @@
   <ItemGroup>
     <Compile Include="Mod.cs" />
     <Compile Include="ModConfig.cs" />
-    <Compile Include="ModModel.cs" />
+    <Compile Include="Models\ModModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

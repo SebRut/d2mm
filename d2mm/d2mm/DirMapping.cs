@@ -44,7 +44,7 @@ namespace de.sebastianrutofski.d2mm
             {
                 if (ModDir == null)
                     _ModDir = String.Empty;
-                if(!ModDir.Equals(value))
+                if(ModDir != null & !ModDir.Equals(value))
                 {
                     _ModDir = value;
                 }
@@ -58,7 +58,7 @@ namespace de.sebastianrutofski.d2mm
             {
                 if (DotaDir == null)
                     _DotaDir = String.Empty;
-                if(!DotaDir.Equals(value))
+                if(DotaDir != null & !DotaDir.Equals(value))
                 {
                     _DotaDir = value;
                 }
