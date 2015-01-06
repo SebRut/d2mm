@@ -43,6 +43,15 @@
                     </ListView.View>
                 </ListView>
                 <StackPanel Grid.Column="1">
+                    <GroupBox Header="General">
+                        <StackPanel>
+                            <Button Margin="3" Content="Reload" Name="ReloadModsButton" Click="ReloadModsButton_Click"/>
+
+                            <Button Margin="3" Content="New Mod" Name="NewModButton" Click="NewModButton_Click"/>
+                            <Button Margin="3" Content="Import from Zip" Name="ImportFromZipButton" Click="ImportFromZipButton_Click" />
+                        </StackPanel>
+                    </GroupBox>
+
                     <GroupBox Header="Installation">
                         <StackPanel>
                             <Button Margin="3" Content="One-Time Start" Name="ApplyButton" Click="ApplyAndStartButton_Click" />
@@ -50,10 +59,15 @@
                             <Button Margin="3" Content="Remove" Name="RemoveButton" Click="RemoveButton_Click" />
                         </StackPanel>
                     </GroupBox>
-                    <Button Margin="3" Content="Move Up" Name="MoveModUpButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedIndex, Converter={StaticResource greaterThanToBoolConverter}, ConverterParameter=0}" Click="MoveModUpButton_Click"/>
-                    <Button Margin="3" Content="Edit" Name="EditModButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedItem, Converter={StaticResource notNullToBoolConverter}}" Click="EditModButton_Click"/>
-                    <Button Margin="3" Content="New Mod" Name="NewModButton" Click="NewModButton_Click"/>
-                    <Button Margin="3" Content="Import from Zip" Name="ImportFromZipButton" Click="ImportFromZipButton_Click" />
+                    <GroupBox Header="Mod">
+                        <StackPanel>
+                            <Button Margin="3" Content="Move Up" Name="MoveModUpButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedIndex, Converter={StaticResource greaterThanToBoolConverter}, ConverterParameter=0}" Click="MoveModUpButton_Click"/>
+                            <Button Margin="3" Content="Edit" Name="EditModButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedItem, Converter={StaticResource notNullToBoolConverter}}" Click="EditModButton_Click"/>
+                            <Button Margin="3" Content="Delete" Name="DeleteModButton" IsEnabled="{Binding ElementName=ModList, Path=SelectedItem, Converter={StaticResource notNullToBoolConverter}}" Click="DeleteModButton_Click"/>
+
+                        </StackPanel>
+                    </GroupBox>
+       
 
 
                 </StackPanel>

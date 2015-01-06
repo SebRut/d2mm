@@ -65,7 +65,7 @@ namespace de.sebastianrutofski.d2mm
 
         private async Task<bool> CheckSettings()
         {
-            d2mm.DLog.Log("Checking Settings...");
+            DLog.Log("Checking Settings...");
             if (Properties.Settings.Default.DotaDir.Length != 0) return false;
 
             string regPath = String.Empty;
@@ -84,7 +84,7 @@ namespace de.sebastianrutofski.d2mm
             }
             catch (Exception e)
             {
-                d2mm.DLog.Log(e);
+                DLog.Log(e);
             }
 
             string[] possibleSteamAppsDirs = new[]
@@ -129,7 +129,7 @@ namespace de.sebastianrutofski.d2mm
             if (foundDotaDir == null)
             {
                 MessageDialogResult r = await this.ShowMessageAsync("Not Found!",
-                   "No DotA 2 dir detected. Wanna pick the right one by yourself?"
+                    "No DotA 2 dir detected. Wanna pick the right one by yourself?"
                     , MessageDialogStyle.AffirmativeAndNegative,
                     new MetroDialogSettings() { AffirmativeButtonText = "Yes", NegativeButtonText = "No" });
                 if( r == MessageDialogResult.Affirmative)
@@ -366,6 +366,41 @@ namespace de.sebastianrutofski.d2mm
 
             mod.SaveModConfig();
             Mods.Add(new ModModel(mod));
+        }
+
+        private void ReloadModsButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadMods();
+        }
+
+        private async void DeleteModButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageDialogResult r = await this.ShowMessageAsync("Delete!",
+                    String.Format("Do you really want to delete {0}?", ((ModModel)ModList.SelectedItem).Name)
+                    , MessageDialogStyle.AffirmativeAndNegative,
+                    new MetroDialogSettings() {AffirmativeButtonText = "Yes", NegativeButtonText = "No"});
+            if (r == MessageDialogResult.Affirmative)
+            {
+                DLog.Log("Deleting mod " + ModList.SelectedItem, DLog.LogType.Debug);
+                bool exceptioned = false;
+                try
+                {
+                    Directory.Delete(((ModModel) ModList.SelectedItem).Dir, true);
+                }
+                catch (Exception ex)
+                {
+                    DLog.Log(ex);
+                    exceptioned = true;
+                }
+                if (exceptioned)
+                {
+                    await
+                        this.ShowMessageAsync("Error!",
+                            "an error encountered while deleting the mod's dir. You may have to delete it manually");
+                }
+
+                Mods.Remove((ModModel)ModList.SelectedItem);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
