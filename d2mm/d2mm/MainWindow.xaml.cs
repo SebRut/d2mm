@@ -349,9 +349,18 @@ namespace de.sebastianrutofski.d2mm
             {
                 foreach (string dir in Directory.GetDirectories(Path.Combine(destDir, "/dota")))
                 {
-                    Helpers.MoveDirectoryToDirectory(Path.Combine(destDir, "/dota", Path.PathSeparator + dir),
-                        Path.Combine(destDir, Path.PathSeparator + dir));
-                    mod.DirMappings.Add(new DirMapping(dir, Path.Combine("dota", Path.PathSeparator + dir)));
+                    string dirName = Path.GetFileName(Path.GetDirectoryName(dir + Path.DirectorySeparatorChar));
+                    Helpers.MoveDirectoryToDirectory(Path.Combine(destDir, "/dota", Path.DirectorySeparatorChar + dirName),
+                        Path.Combine(destDir, Path.PathSeparator + dirName));
+                    mod.DirMappings.Add(new DirMapping(dir, Path.Combine("dota", Path.DirectorySeparatorChar + dirName)));
+                }
+            }
+            List<String> dotaDirs = Directory.GetDirectories(Path.Combine(Properties.Settings.Default.DotaDir + Path.DirectorySeparatorChar, "dota")).Select(dir => Path.GetFileName(Path.GetDirectoryName(Path.Combine(dir + Path.DirectorySeparatorChar)))).ToList();
+            foreach (string dir in Directory.GetDirectories(destDir).Select(dir => Path.GetFileName(Path.GetDirectoryName(dir + Path.DirectorySeparatorChar))))
+            {
+                if (!mod.DirMappings.Any(dm => dm.ModDir.Equals(dir)) & (dotaDirs.Any(dd => dd.Equals(dir))))
+                {
+                    mod.DirMappings.Add(new DirMapping(dir, ("dota" + Path.PathSeparator + dir)));
                 }
             }
 
