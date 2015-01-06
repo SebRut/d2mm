@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using de.sebastianrutofski.d2mm;
 using NUnit.Framework;
 
-namespace d2mm.Test
+namespace de.sebasd2mm.Test
 {
     [TestFixture]
     public class ModTest
@@ -42,15 +38,20 @@ namespace d2mm.Test
         [TestCase(FilledModDir, TestName="Filled Dir")]
         public static void TestCreateFromDir(string dir)
         {
-            Assert.NotNull(Mod.CreateFromDirectory(dir));
+            Mod mod = Mod.CreateFromDirectory(dir);
+            Assert.NotNull(mod);
+            Assert.AreEqual(mod.Name, Path.GetFileName(Path.GetDirectoryName(dir + Path.DirectorySeparatorChar)));
         }
 
-        [TestCase("", TestName="Empty String")]
-        [TestCase("{}", TestName="Only Brackets")]
-        [TestCase("{\"Name\":\"Test Mod\",\"Version\":\"1.2.3.4\"}", TestName="Normal")]
-        public static void TestCreateFromString(string source)
+        [TestCase("", "", "0.0", TestName = "Empty String")]
+        [TestCase("{}", "", "0.0", TestName="Only Brackets")]
+        [TestCase("{\"Name\":\"Test Mod\",\"Version\":\"1.2.3.4\"}", "Test Mod", "1.2.3.4", TestName="Normal")]
+        public static void TestCreateFromString(string source, string modName, string modVersion)
         {
-            Assert.NotNull(Mod.CreateFromString(source));
+            Mod mod = Mod.CreateFromString(source);
+            Assert.NotNull(mod);
+            Assert.AreEqual(mod.Name, modName);
+            Assert.AreEqual(mod.Version, Version.Parse(modVersion));
         }
     }
 }
