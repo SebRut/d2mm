@@ -1,4 +1,4 @@
-version:    0.1.{build}
+version:    0.2.{build}
 
 assembly_info:
   patch: true
@@ -9,7 +9,7 @@ assembly_info:
 
 artifacts:
 - path: bin\Debug
-  name: d2mm-0.1
+  name: d2mm-0.2
   
 install:
 - git submodule update --init --recursive
