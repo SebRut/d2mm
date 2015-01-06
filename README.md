@@ -8,13 +8,13 @@
 * Set specific installation order
 * mod package creator
 * one-time mod test option
+* automatic zip to mod package conversion
 
 ###Planned
 
 * Auto updating functionality
 * conflict finder
 * execute script at install / uninstall
-* automatic zip to mod package conversion
 
 ##Screenshots
 ![Main view](http://i.imgur.com/AccqRUs.png)

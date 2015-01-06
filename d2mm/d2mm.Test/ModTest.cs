@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
-using de.sebastianrutofski.d2mm;
 using NUnit.Framework;
 
-namespace de.sebasd2mm.Test
+namespace de.sebastianrutofski.d2mm.Test
 {
     [TestFixture]
     public class ModTest
