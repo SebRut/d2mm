@@ -88,12 +88,6 @@ namespace de.sebastianrutofski.d2mm
 
         public static void CreateFromDirectory(string dir, out Mod mod)
         {
-            if (Path.GetInvalidPathChars().Any(dir.Contains))
-            {
-                mod = new Mod();
-                mod.Name = Path.GetFileName(Path.GetDirectoryName(Path.GetInvalidPathChars().Aggregate(dir, (current,c) => current.Replace(c.ToString(), "~")) + Path.DirectorySeparatorChar));
-                return;
-            }
             string[] files = Directory.GetFiles(dir);
             if (Array.IndexOf(files, Path.Combine(dir, ConfigFile)) > -1)
             {

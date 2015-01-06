@@ -33,7 +33,6 @@ namespace de.sebasd2mm.Test
             Assert.Throws(typeof(ArgumentNullException),() => Mod.CreateFromDirectory(null, out mod));
         }
 
-        [TestCase("C:\\dirs\\ßß * /\\" , TestName="Invalid Chars")]
         [TestCase(EmptyModDir, TestName="Empty Dir")]
         [TestCase(FilledModDir, TestName="Filled Dir")]
         public static void TestCreateFromDir(string dir)
