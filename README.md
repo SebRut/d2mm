@@ -15,6 +15,7 @@
 * Auto updating functionality
 * conflict finder
 * execute script at install / uninstall
+* autoexec editor
 
 ##Screenshots
 ![Main view](http://i.imgur.com/AccqRUs.png)
