@@ -351,7 +351,7 @@ namespace de.sebastianrutofski.d2mm
                 {
                     string dirName = Path.GetFileName(Path.GetDirectoryName(dir + Path.DirectorySeparatorChar));
                     Helpers.MoveDirectoryToDirectory(Path.Combine(destDir, "/dota", Path.DirectorySeparatorChar + dirName),
-                        Path.Combine(destDir, Path.PathSeparator + dirName));
+                        Path.Combine(destDir, Path.DirectorySeparatorChar + dirName));
                     mod.DirMappings.Add(new DirMapping(dir, Path.Combine("dota", Path.DirectorySeparatorChar + dirName)));
                 }
             }
